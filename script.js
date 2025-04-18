@@ -31,21 +31,25 @@ function fileParsed(results) {
     resetTable();
     // parse the addresses to make a csv array and fill out the table
     var tableBody = document.getElementById("previewTableBody");
-    for (var i = 0; i < results.data.length; i++) {        
-            let parsed = parseAddress.parseLocation(results.data[i]["Address"]);
-            let address = parsed.number ? parsed.number + " " : "";
-            address += parsed.prefix ? parsed.prefix + " " : "";
-            address += parsed.street ? parsed.street + " " : "";
-            address += parsed.type ? parsed.type + " " : "";
-            address += parsed.sec_unit_type ? parsed.sec_unit_type + " " : "";
-            address += parsed.sec_unit_num ? parsed.sec_unit_num + " " : "";
-            address = address.trim();
+    for (var i = 0; i < results.data.length; i++) {    
+            let parsed = parseAddress(results.data[i]["Address"])
+            if (parsed == null) {
+                outputCsv.push([results.data[i]["Address"], "", "", ""]);
 
-            outputCsv.push([address, parsed.city, parsed.state, parsed.zip]);
+                let row = tableBody.insertRow();
+                row.classList.add("table-danger");
+                let cell = row.insertCell();
+                cell.textContent = results.data[i]["Address"];
+                cell = row.insertCell();
+                cell = row.insertCell();
+                cell = row.insertCell();
+                continue;
+            }
+            outputCsv.push([parsed.address, parsed.city, parsed.state, parsed.zip]);
 
             let row = tableBody.insertRow();
             let cell = row.insertCell();
-            cell.textContent = address;
+            cell.textContent = parsed.address;
             cell = row.insertCell();
             cell.textContent = parsed.city;
             cell = row.insertCell();
