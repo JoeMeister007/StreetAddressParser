@@ -2,3 +2,8 @@
     overflow-y: auto;
     max-height: 50vh;
 }
+
+/*Increase drop menu z-index to show above sticky table head*/
+.dropdown-menu {
+    z-index: 1025;
+}

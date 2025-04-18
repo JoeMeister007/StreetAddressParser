@@ -1,28 +1,66 @@
 var spreadsheetinput;
 var errorAlert;
 var outputCsv;
+var removeDuplicates;
+var addressSet = new Set();
+var removeDuplicatesCheckbox;
+
 
 function onLoad() {
     errorAlert = document.getElementById("errorAlert");
     spreadsheetinput = document.getElementById("spreadsheetinput");
     spreadsheetinput.addEventListener("change", () => {
-        // On the addition or deletion of a file
 
-        // If the file was removed call some function to clean up the UI
-        if (spreadsheetinput.files.length == 0) {
-            fileRemoved();
-            return;
-        }
-
-        //We have a file to parse
-        Papa.parse(spreadsheetinput.files[0], {
-            complete: fileParsed,
-            header: true,
-            skipEmptyLines: true,
-        });
-
-        resetOutputCsv();
     });
+    
+    //load user settings from local storage or set defaults
+    let lsRemoveDuplicates = localStorage.getItem("removeDuplicates");
+    removeDuplicatesCheckbox = document.getElementById("removeDuplicatesCheckbox");
+    if (lsRemoveDuplicates == null) {
+        removeDuplicates = removeDuplicatesCheckbox.checked;
+        localStorage.setItem("removeDuplicates", removeDuplicates);
+    }
+    else {
+        removeDuplicates = 'true' == lsRemoveDuplicates;
+        removeDuplicatesCheckbox.checked = removeDuplicates;
+
+    }
+
+}
+
+function onFileOrSettingChange(wasSettingChange) {
+    //Update the settings
+    if (removeDuplicatesCheckbox.checked != removeDuplicates) {
+        removeDuplicates = removeDuplicatesCheckbox.checked;
+        localStorage.setItem("removeDuplicates", removeDuplicates);
+    }
+
+    // If the file was removed call some function to clean up the UI
+    if (spreadsheetinput.files.length == 0) {
+        if (!wasSettingChange) {
+            fileRemoved();
+        }
+        return;
+    }
+
+    addressSet = new Set();
+
+    //Parse the file
+    Papa.parse(spreadsheetinput.files[0], {
+        complete: fileParsed,
+        header: true,
+        skipEmptyLines: true,
+    });
+}
+
+// Takes an address and puts in in lowercase, removing extra spaces and non-alphanumeric characters
+// This is a helper function for recognizing duplicates
+function standardizeAddress(address) {
+    address = address.toLowerCase();
+    address = address.trim();
+    address = address.replace(/\s+/g, " ");
+    address.replace(/[^a-z0-9]/g, "");
+    return address;
 }
 
 function fileParsed(results) {
@@ -31,36 +69,43 @@ function fileParsed(results) {
     resetTable();
     // parse the addresses to make a csv array and fill out the table
     var tableBody = document.getElementById("previewTableBody");
-    for (var i = 0; i < results.data.length; i++) {    
-            let parsed = parseAddress(results.data[i]["Address"])
-            if (parsed == null) {
-                outputCsv.push([results.data[i]["Address"], "", "", ""]);
-
-                let row = tableBody.insertRow();
-                row.classList.add("table-danger");
-                let cell = row.insertCell();
-                cell.textContent = results.data[i]["Address"];
-                cell = row.insertCell();
-                cell = row.insertCell();
-                cell = row.insertCell();
+    for (var i = 0; i < results.data.length; i++) {
+        if (removeDuplicates) {
+            let standardized = standardizeAddress(results.data[i]["Address"]);
+            if (addressSet.has(standardized)) {
                 continue;
             }
-            outputCsv.push([parsed.address, parsed.city, parsed.state, parsed.zip]);
+            addressSet.add(standardized);
+        }
+        let parsed = parseAddress(results.data[i]["Address"])
+        if (parsed == null) {
+            outputCsv.push([results.data[i]["Address"], "", "", ""]);
 
             let row = tableBody.insertRow();
+            row.classList.add("table-danger");
             let cell = row.insertCell();
-            cell.textContent = parsed.address;
-            if (/^\s*[0-9]+\s*$/.test(parsed.address)) {
-                row.classList.add("table-warning");
-            }
+            cell.textContent = results.data[i]["Address"];
             cell = row.insertCell();
-            cell.textContent = parsed.city;
             cell = row.insertCell();
-            cell.textContent = parsed.state;
             cell = row.insertCell();
-            cell.textContent = parsed.zip;
+            continue;
+        }
+        outputCsv.push([parsed.address, parsed.city, parsed.state, parsed.zip]);
+
+        let row = tableBody.insertRow();
+        let cell = row.insertCell();
+        cell.textContent = parsed.address;
+        if (/^\s*[0-9]+\s*$/.test(parsed.address)) {
+            row.classList.add("table-warning");
+        }
+        cell = row.insertCell();
+        cell.textContent = parsed.city;
+        cell = row.insertCell();
+        cell.textContent = parsed.state;
+        cell = row.insertCell();
+        cell.textContent = parsed.zip;
     }
-    
+
     showTable();
 }
 

@@ -2,7 +2,7 @@ const streetNames = 'allee|alley|ally|aly|anex|annex|annx|anx|arc|arcade|av|ave|
 const states = 'AK|AL|AR|AS|AZ|CA|CO|CT|DC|DE|FL|FM|GA|GU|HI|IA|ID|IL|IN|KS|KY|LA|MA|MD|ME|MH|MI|MN|MO|MP|MS|MT|NC|ND|NE|NH|NJ|NM|NV|NY|OH|OK|OR|PA|PR|PW|RI|SC|SD|TN|TX|UT|VA|VI|VT|WA|WI|WV|WY|alabama|alaska|american samoa|arizona|arkansas|california|colorado|connecticut|delaware|district of columbia|federated states of micronesia|florida|georgia|guam|hawaii|idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|marshall islands|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|new york|north carolina|north dakota|northern mariana islands|ohio|oklahoma|oregon|palau|pennsylvania|puerto rico|rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virgin islands|virginia|washington|west virginia|wisconsin|wyoming';
 const directions = 'north|northeast|east|southeast|south|southwest|west|northwest|n|ne|e|se|s|sw|w|nw';
 //Easiest to understand right to left. Parse zip code first, then state, get the street by saying it ends at a road, what's left in the middle is the city.
-const regex = new RegExp(`^\\s*([\\w\\s,\\.]+\\s+(?:[\\d]+|(?:${streetNames})(?:\\s+(?:${directions}))?|(?:${directions})\\s+[\\w\\.]+))[\\.,\\s]+([\\w\\s\\.]+)[\\.,\\s]+(${states})[\\.,\\s]+(\\d{5}(?:-\\d{4})?)\\s*$`,"i");
+const regex = new RegExp(`^\\s*([\\w\\s,\\.]+\\s+(?:[\\d]+|(?:${streetNames})(?:\\s+(?:${directions}))?|(?:${directions})\\s+[\\w\\.]+))[\\.,\\s]+([\\w\\s\\.]+)[\\.,\\s]+(${states})[\\.,\\s]+(\\d{5}(?:-\\d{4})?)\\s*$`, "i");
 
 function parseAddress(address) {
     const match = address.match(regex);
