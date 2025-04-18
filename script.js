@@ -45,9 +45,6 @@ function standardizeAddress(address) {
 }
 
 function fileParsed(results) {
-    if (removeDuplicates) {
-        console.log("Hi");
-    }
     hideError();
     resetOutputCsv();
     resetTable();
@@ -57,7 +54,6 @@ function fileParsed(results) {
         if (removeDuplicates) {
             let standardized = standardizeAddress(results.data[i]["Address"]);
             if (addressSet.has(standardized)) {
-                console.log(standardized);
                 continue;
             }
             addressSet.add(standardized);
