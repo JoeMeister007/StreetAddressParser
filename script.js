@@ -23,7 +23,7 @@ function onFileOrSettingChange(wasSettingChange) {
     }
 
     //Update the settings
-    removeDuplicates = document.getElementById("removeDuplicatesCheckbox").checked; 
+    removeDuplicates = document.getElementById("removeDuplicatesCheckbox").checked;
     addressSet = new Set();
 
     //Parse the file
@@ -54,43 +54,43 @@ function fileParsed(results) {
     // parse the addresses to make a csv array and fill out the table
     var tableBody = document.getElementById("previewTableBody");
     for (var i = 0; i < results.data.length; i++) {
-            if (removeDuplicates) {
-                let standardized = standardizeAddress(results.data[i]["Address"]);
-                if (addressSet.has(standardized)) {
-                    console.log(standardized);
-                    continue;
-                }
-                addressSet.add(standardized);
-            }
-            let parsed = parseAddress(results.data[i]["Address"])
-            if (parsed == null) {
-                outputCsv.push([results.data[i]["Address"], "", "", ""]);
-
-                let row = tableBody.insertRow();
-                row.classList.add("table-danger");
-                let cell = row.insertCell();
-                cell.textContent = results.data[i]["Address"];
-                cell = row.insertCell();
-                cell = row.insertCell();
-                cell = row.insertCell();
+        if (removeDuplicates) {
+            let standardized = standardizeAddress(results.data[i]["Address"]);
+            if (addressSet.has(standardized)) {
+                console.log(standardized);
                 continue;
             }
-            outputCsv.push([parsed.address, parsed.city, parsed.state, parsed.zip]);
+            addressSet.add(standardized);
+        }
+        let parsed = parseAddress(results.data[i]["Address"])
+        if (parsed == null) {
+            outputCsv.push([results.data[i]["Address"], "", "", ""]);
 
             let row = tableBody.insertRow();
+            row.classList.add("table-danger");
             let cell = row.insertCell();
-            cell.textContent = parsed.address;
-            if (/^\s*[0-9]+\s*$/.test(parsed.address)) {
-                row.classList.add("table-warning");
-            }
+            cell.textContent = results.data[i]["Address"];
             cell = row.insertCell();
-            cell.textContent = parsed.city;
             cell = row.insertCell();
-            cell.textContent = parsed.state;
             cell = row.insertCell();
-            cell.textContent = parsed.zip;
+            continue;
+        }
+        outputCsv.push([parsed.address, parsed.city, parsed.state, parsed.zip]);
+
+        let row = tableBody.insertRow();
+        let cell = row.insertCell();
+        cell.textContent = parsed.address;
+        if (/^\s*[0-9]+\s*$/.test(parsed.address)) {
+            row.classList.add("table-warning");
+        }
+        cell = row.insertCell();
+        cell.textContent = parsed.city;
+        cell = row.insertCell();
+        cell.textContent = parsed.state;
+        cell = row.insertCell();
+        cell.textContent = parsed.zip;
     }
-    
+
     showTable();
 }
 
