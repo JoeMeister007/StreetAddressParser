@@ -50,6 +50,9 @@ function fileParsed(results) {
             let row = tableBody.insertRow();
             let cell = row.insertCell();
             cell.textContent = parsed.address;
+            if (/^\s*[0-9]+\s*$/.test(parsed.address)) {
+                row.classList.add("table-warning");
+            }
             cell = row.insertCell();
             cell.textContent = parsed.city;
             cell = row.insertCell();
