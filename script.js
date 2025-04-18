@@ -3,6 +3,8 @@ var errorAlert;
 var outputCsv;
 var removeDuplicates;
 var addressSet = new Set();
+var removeDuplicatesCheckbox;
+
 
 function onLoad() {
     errorAlert = document.getElementById("errorAlert");
@@ -10,10 +12,29 @@ function onLoad() {
     spreadsheetinput.addEventListener("change", () => {
 
     });
-    removeDuplicates = document.getElementById("removeDuplicatesCheckbox").checked;
+    
+    //load user settings from local storage or set defaults
+    let lsRemoveDuplicates = localStorage.getItem("removeDuplicates");
+    removeDuplicatesCheckbox = document.getElementById("removeDuplicatesCheckbox");
+    if (lsRemoveDuplicates == null) {
+        removeDuplicates = removeDuplicatesCheckbox.checked;
+        localStorage.setItem("removeDuplicates", removeDuplicates);
+    }
+    else {
+        removeDuplicates = 'true' == lsRemoveDuplicates;
+        removeDuplicatesCheckbox.checked = removeDuplicates;
+
+    }
+
 }
 
 function onFileOrSettingChange(wasSettingChange) {
+    //Update the settings
+    if (removeDuplicatesCheckbox.checked != removeDuplicates) {
+        removeDuplicates = removeDuplicatesCheckbox.checked;
+        localStorage.setItem("removeDuplicates", removeDuplicates);
+    }
+
     // If the file was removed call some function to clean up the UI
     if (spreadsheetinput.files.length == 0) {
         if (!wasSettingChange) {
@@ -22,8 +43,6 @@ function onFileOrSettingChange(wasSettingChange) {
         return;
     }
 
-    //Update the settings
-    removeDuplicates = document.getElementById("removeDuplicatesCheckbox").checked;
     addressSet = new Set();
 
     //Parse the file
