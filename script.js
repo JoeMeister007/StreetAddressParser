@@ -1,37 +1,67 @@
 var spreadsheetinput;
 var errorAlert;
 var outputCsv;
+var removeDuplicates;
+var addressSet = new Set();
 
 function onLoad() {
     errorAlert = document.getElementById("errorAlert");
     spreadsheetinput = document.getElementById("spreadsheetinput");
     spreadsheetinput.addEventListener("change", () => {
-        // On the addition or deletion of a file
 
-        // If the file was removed call some function to clean up the UI
-        if (spreadsheetinput.files.length == 0) {
+    });
+    removeDuplicates = document.getElementById("removeDuplicatesCheckbox").checked;
+}
+
+function onFileOrSettingChange(wasSettingChange) {
+    // If the file was removed call some function to clean up the UI
+    if (spreadsheetinput.files.length == 0) {
+        if (!wasSettingChange) {
             fileRemoved();
-            return;
         }
+        return;
+    }
 
-        //We have a file to parse
-        Papa.parse(spreadsheetinput.files[0], {
-            complete: fileParsed,
-            header: true,
-            skipEmptyLines: true,
-        });
+    //Update the settings
+    removeDuplicates = document.getElementById("removeDuplicatesCheckbox").checked; 
+    addressSet = new Set();
 
-        resetOutputCsv();
+    //Parse the file
+    Papa.parse(spreadsheetinput.files[0], {
+        complete: fileParsed,
+        header: true,
+        skipEmptyLines: true,
     });
 }
 
+// Takes an address and puts in in lowercase, removing extra spaces and non-alphanumeric characters
+// This is a helper function for recognizing duplicates
+function standardizeAddress(address) {
+    address = address.toLowerCase();
+    address = address.trim();
+    address = address.replace(/\s+/g, " ");
+    address.replace(/[^a-z0-9]/g, "");
+    return address;
+}
+
 function fileParsed(results) {
+    if (removeDuplicates) {
+        console.log("Hi");
+    }
     hideError();
     resetOutputCsv();
     resetTable();
     // parse the addresses to make a csv array and fill out the table
     var tableBody = document.getElementById("previewTableBody");
-    for (var i = 0; i < results.data.length; i++) {    
+    for (var i = 0; i < results.data.length; i++) {
+            if (removeDuplicates) {
+                let standardized = standardizeAddress(results.data[i]["Address"]);
+                if (addressSet.has(standardized)) {
+                    console.log(standardized);
+                    continue;
+                }
+                addressSet.add(standardized);
+            }
             let parsed = parseAddress(results.data[i]["Address"])
             if (parsed == null) {
                 outputCsv.push([results.data[i]["Address"], "", "", ""]);
