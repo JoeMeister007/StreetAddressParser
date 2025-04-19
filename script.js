@@ -4,6 +4,8 @@ var outputCsv;
 var removeDuplicates;
 var addressSet = new Set();
 var removeDuplicatesCheckbox;
+var includeOtherColsCheckbox;
+var includeOtherCols;
 
 
 function onLoad() {
@@ -26,6 +28,18 @@ function onLoad() {
 
     }
 
+    let lsIncludeOtherCols = localStorage.getItem("includeOtherCols");
+    includeOtherColsCheckbox = document.getElementById("includeOtherColsCheckbox");
+    if (lsIncludeOtherCols == null) {
+        includeOtherCols = includeOtherColsCheckbox.checked;
+        localStorage.setItem("includeOtherCols", includeOtherCols);
+    }
+    else {
+        includeOtherCols = 'true' == lsIncludeOtherCols;
+        includeOtherColsCheckbox.checked = includeOtherCols;
+
+    }
+
 }
 
 function onFileOrSettingChange(wasSettingChange) {
@@ -33,6 +47,11 @@ function onFileOrSettingChange(wasSettingChange) {
     if (removeDuplicatesCheckbox.checked != removeDuplicates) {
         removeDuplicates = removeDuplicatesCheckbox.checked;
         localStorage.setItem("removeDuplicates", removeDuplicates);
+    }
+
+    if (includeOtherColsCheckbox.checked != includeOtherCols) {
+        includeOtherCols = includeOtherColsCheckbox.checked;
+        localStorage.setItem("includeOtherCols", includeOtherCols);
     }
 
     // If the file was removed call some function to clean up the UI
@@ -67,6 +86,11 @@ function fileParsed(results) {
     hideError();
     resetOutputCsv();
     resetTable();
+
+    if (results.errors.length > 0) {
+        showError();
+        return;
+    }
     // parse the addresses to make a csv array and fill out the table
     var tableBody = document.getElementById("previewTableBody");
     for (var i = 0; i < results.data.length; i++) {
