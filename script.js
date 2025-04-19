@@ -82,6 +82,12 @@ function standardizeAddress(address) {
     return address;
 }
 
+function insertHead(headerRow) {
+    let th = document.createElement("th");
+    headerRow.appendChild(th);
+    return th;
+}
+
 function fileParsed(results) {
     hideError();
     resetOutputCsv();
@@ -90,6 +96,31 @@ function fileParsed(results) {
     if (results.errors.length > 0) {
         showError();
         return;
+    }
+
+    // set up the csv header row
+    var addressIndex = 0;
+    var tableHead = document.getElementById("previewTableHead");
+    var headerRow = tableHead.insertRow();
+    for (var i = 0; i < results.meta.fields.length; i++) {
+        if (results.meta.fields[i] == "Address") {
+            addressIndex = includeOtherCols ? i : 0;
+            outputCsv.push(["Address", "City", "State", "Zip"]);
+            let cell = insertHead(headerRow);
+            cell.textContent = "Address";
+            cell = insertHead(headerRow);
+            cell.textContent = "City";
+            cell = insertHead(headerRow);
+            cell.textContent = "State";
+            cell = insertHead(headerRow);
+            cell.textContent = "Zip";
+            continue;
+        }
+        if (includeOtherCols) {
+            outputCsv[0].push(results.meta.fields[i]);
+            let cell = insertHead(headerRow);
+            cell.textContent = results.meta.fields[i];
+        }
     }
     // parse the addresses to make a csv array and fill out the table
     var tableBody = document.getElementById("previewTableBody");
@@ -102,32 +133,40 @@ function fileParsed(results) {
             addressSet.add(standardized);
         }
         let parsed = parseAddress(results.data[i]["Address"])
-        if (parsed == null) {
-            outputCsv.push([results.data[i]["Address"], "", "", ""]);
-
-            let row = tableBody.insertRow();
-            row.classList.add("table-danger");
-            let cell = row.insertCell();
-            cell.textContent = results.data[i]["Address"];
-            cell = row.insertCell();
-            cell = row.insertCell();
-            cell = row.insertCell();
-            continue;
+        var csvRow = [];
+        for (var j = 0; j < outputCsv[0].length; j++) {
+            //just put in a placeholder value for the address columns for now
+            if (j >= addressIndex && j < addressIndex + 4) {
+                csvRow.push("");
+                continue;
+            }
+            if (includeOtherCols) {
+                csvRow.push(results.data[i][outputCsv[0][j]]);
+            }
         }
-        outputCsv.push([parsed.address, parsed.city, parsed.state, parsed.zip]);
 
         let row = tableBody.insertRow();
-        let cell = row.insertCell();
-        cell.textContent = parsed.address;
-        if (/^\s*[0-9]+\s*$/.test(parsed.address)) {
-            row.classList.add("table-warning");
+
+        if (parsed == null) {
+            csvRow[addressIndex] = results.data[i]["Address"];
+            row.classList.add("table-danger");
         }
-        cell = row.insertCell();
-        cell.textContent = parsed.city;
-        cell = row.insertCell();
-        cell.textContent = parsed.state;
-        cell = row.insertCell();
-        cell.textContent = parsed.zip;
+        else {
+            csvRow[addressIndex] = parsed.address;
+            csvRow[addressIndex + 1] = parsed.city;
+            csvRow[addressIndex + 2] = parsed.state;
+            csvRow[addressIndex + 3] = parsed.zip;
+
+            if (/^\s*[0-9]+\s*$/.test(parsed.address)) {
+                row.classList.add("table-warning");
+            }
+        }
+        outputCsv.push(csvRow);
+
+        for (var j = 0; j < csvRow.length; j++) {
+            let cell = row.insertCell();
+            cell.textContent = csvRow[j];
+        }
     }
 
     showTable();
@@ -147,10 +186,14 @@ function hideError() {
 }
 
 function resetOutputCsv() {
-    outputCsv = [["Address", "City", "State", "Zip Code"]];
+    outputCsv = [];
 }
 
 function resetTable() {
+    var tableHead = document.getElementById("previewTableHead");
+    while (tableHead.rows.length > 0) {
+        tableHead.deleteRow(0);
+    }
     var tableBody = document.getElementById("previewTableBody");
     while (tableBody.rows.length > 0) {
         tableBody.deleteRow(0);
