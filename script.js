@@ -102,10 +102,11 @@ function fileParsed(results) {
     var addressIndex = 0;
     var tableHead = document.getElementById("previewTableHead");
     var headerRow = tableHead.insertRow();
+    var headCsvRow = [];
     for (var i = 0; i < results.meta.fields.length; i++) {
         if (results.meta.fields[i] == "Address") {
             addressIndex = includeOtherCols ? i : 0;
-            outputCsv.push(["Address", "City", "State", "Zip"]);
+            headCsvRow = headCsvRow.concat(["Address", "City", "State", "Zip"]);
             let cell = insertHead(headerRow);
             cell.textContent = "Address";
             cell = insertHead(headerRow);
@@ -117,11 +118,13 @@ function fileParsed(results) {
             continue;
         }
         if (includeOtherCols) {
-            outputCsv[0].push(results.meta.fields[i]);
+            headCsvRow.push(results.meta.fields[i]);
             let cell = insertHead(headerRow);
             cell.textContent = results.meta.fields[i];
         }
     }
+    outputCsv.push(headCsvRow);
+    
     // parse the addresses to make a csv array and fill out the table
     var tableBody = document.getElementById("previewTableBody");
     for (var i = 0; i < results.data.length; i++) {
