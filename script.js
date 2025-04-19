@@ -124,7 +124,7 @@ function fileParsed(results) {
         }
     }
     outputCsv.push(headCsvRow);
-    
+
     // parse the addresses to make a csv array and fill out the table
     var tableBody = document.getElementById("previewTableBody");
     for (var i = 0; i < results.data.length; i++) {
