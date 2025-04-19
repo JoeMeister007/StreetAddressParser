@@ -12,7 +12,7 @@ function onLoad() {
     spreadsheetinput.addEventListener("change", () => {
 
     });
-    
+
     //load user settings from local storage or set defaults
     let lsRemoveDuplicates = localStorage.getItem("removeDuplicates");
     removeDuplicatesCheckbox = document.getElementById("removeDuplicatesCheckbox");
