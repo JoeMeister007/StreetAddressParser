@@ -103,9 +103,12 @@ function fileParsed(results) {
     var tableHead = document.getElementById("previewTableHead");
     var headerRow = tableHead.insertRow();
     var headCsvRow = [];
+    var ogAddressColHeader = null;
     for (var i = 0; i < results.meta.fields.length; i++) {
-        if (results.meta.fields[i] == "Address") {
+        if (ogAddressColHeader == null && results.meta.fields[i].toLowerCase().trim() == "address") {
             addressIndex = includeOtherCols ? i : 0;
+            // Figure out the name of the address column
+            ogAddressColHeader = results.meta.fields[i];
             headCsvRow = headCsvRow.concat(["Address", "City", "State", "Zip"]);
             let cell = insertHead(headerRow);
             cell.textContent = "Address";
@@ -123,19 +126,26 @@ function fileParsed(results) {
             cell.textContent = results.meta.fields[i];
         }
     }
+    // Make sure there's an address column
+    if (ogAddressColHeader == null) {
+        showError();
+        return;
+    }
+
     outputCsv.push(headCsvRow);
 
     // parse the addresses to make a csv array and fill out the table
     var tableBody = document.getElementById("previewTableBody");
     for (var i = 0; i < results.data.length; i++) {
+        var unparsed = results.data[i][ogAddressColHeader] ?? "";
         if (removeDuplicates) {
-            let standardized = standardizeAddress(results.data[i]["Address"]);
+            let standardized = standardizeAddress(unparsed);
             if (addressSet.has(standardized)) {
                 continue;
             }
             addressSet.add(standardized);
         }
-        let parsed = parseAddress(results.data[i]["Address"])
+        let parsed = parseAddress(unparsed);
         var csvRow = [];
         for (var j = 0; j < outputCsv[0].length; j++) {
             //just put in a placeholder value for the address columns for now
@@ -151,7 +161,7 @@ function fileParsed(results) {
         let row = tableBody.insertRow();
 
         if (parsed == null) {
-            csvRow[addressIndex] = results.data[i]["Address"];
+            csvRow[addressIndex] = results.data[i][ogAddressColHeader];
             row.classList.add("table-danger");
         }
         else {
